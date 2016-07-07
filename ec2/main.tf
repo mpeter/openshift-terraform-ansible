@@ -7,7 +7,7 @@ variable "node_instance_type" {default = "c3.large"}
 variable "aws_availability_zone" {default = "us-east-1"}
 variable "aws_region" {default = "us-east-1"}
 variable "ebs_root_block_size" {default = "50"}
-variable "aws_ami" {default = "ami-12663b7a"}
+variable "aws_ami" {default = "ami-54ea9a34"}
 variable "num_nodes" { default = "2" }
 
 provider "aws" {
@@ -17,11 +17,11 @@ provider "aws" {
 }
 
 resource "aws_instance" "ose-master" {
-    ami = "${var.aws_ami}"
-    instance_type = "${var.master_instance_type}"
-    security_groups = [ "default", "${var.security_group}" ]
-    availability_zone = "${var.aws_availability_zone}"
-    key_name = "${var.keypair}"
+    ami                    = "${var.aws_ami}"
+    instance_type          = "${var.master_instance_type}"
+    vpc_security_group_ids = [ "${var.security_group}" ]
+    availability_zone      = "${var.aws_availability_zone}"
+    key_name               = "${var.keypair}"
     tags {
         Name = "master"
         sshUser = "ec2-user"
@@ -37,7 +37,7 @@ resource "aws_instance" "ose-node" {
     count = "${var.num_nodes}"
     ami = "${var.aws_ami}"
     instance_type = "${var.node_instance_type}"
-    security_groups = [ "default", "${var.security_group}" ]
+    vpc_security_group_ids = [ "${var.security_group}" ]
     availability_zone = "${var.aws_availability_zone}"
     key_name = "${var.keypair}"
     tags {
@@ -50,3 +50,6 @@ resource "aws_instance" "ose-node" {
 		volume_size = "${var.ebs_root_block_size}"
 	}
 }
+
+output "ose-nodes.public_dns" { value = "${join(",", aws_instance.ose-node.*.public_dns)}" }
+output "ose-master.public_dns" { value = "${join(",", aws_instance.ose-master.*.public_dns)}" }

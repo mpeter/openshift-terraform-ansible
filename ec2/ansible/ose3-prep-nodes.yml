@@ -1,11 +1,13 @@
 ---
 - hosts: all
-  sudo: yes
+  become: yes
+  become_method: sudo
   tasks:
     - name: disable all repos by default
-      shell: subscription-manager repos --disable="*"      
+      shell: yum-config-manager --disablerepo="*"
     - name: Enable the requisite rhel7 repos
-      shell: subscription-manager repos --enable="rhel-7-server-rpms" --enable="rhel-7-server-extras-rpms" --enable="rhel-7-server-optional-rpms" --enable="rhel-7-server-ose-3.0-rpms"
+      shell: yum-config-manager --enable rhui-REGION-rhel-server-releases --enable rhui-REGION-rhel-server-rh-common --enable rhui-REGION-rhel-server-extras --enable rhui-REGION-rhel-server-optional
+      #--enable="rhel-7-server-ose-3.0-rpms"
     - name: Import keys
       rpm_key: state=present key=/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta
     - name: Remove Network Manager
@@ -26,7 +28,6 @@
     - name: Install Docker
       yum: name=docker state=present
     - name: Enable insecure registry... since we like insecure things
-      lineinfile: dest=/etc/sysconfig/docker state=present line='OPTIONS=--insecure-registry 172.30.0.0/16' regexp="^#?OPTIONS" 
+      lineinfile: dest=/etc/sysconfig/docker state=present line='OPTIONS=--insecure-registry 172.31.0.0/16' regexp="^#?OPTIONS" 
     - name: Start docker
       service: name=docker state=started enabled=yes
-      
